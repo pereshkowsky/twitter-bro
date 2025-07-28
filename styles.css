@@ -1,0 +1,115 @@
+/* Styles for Twitter Claude Reply Generator */
+
+/* Generate button */
+.claude-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.claude-generate-btn:hover {
+  background-color: rgba(29, 161, 242, 0.1);
+  transform: scale(1.1);
+}
+
+.claude-generate-btn:active {
+  transform: scale(0.95);
+}
+
+.claude-generate-btn.generating {
+  animation: spin 1s linear infinite;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Notifications */
+.claude-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10000;
+  max-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.claude-notification-fade {
+  animation: fadeOut 0.3s ease;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.claude-notification-success {
+  background-color: #17BF63;
+  color: white;
+}
+
+.claude-notification-error {
+  background-color: #e0245e;
+  color: white;
+}
+
+.claude-notification-warning {
+  background-color: #ff9800;
+  color: white;
+}
+
+.claude-notification-info {
+  background-color: #1DA1F2;
+  color: white;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .claude-generate-btn:hover {
+    background-color: rgba(29, 161, 242, 0.2);
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .claude-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
