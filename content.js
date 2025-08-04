@@ -191,24 +191,51 @@ function isRepost(article) {
 }
 
 // Function to mark reposts
-function markRepost(article) {
-  if (!article.classList.contains('claude-repost-marked') && isRepost(article)) {
-    article.classList.add('claude-repost-marked');
-    
-    // Optional: Add visual indicator
-    const indicator = document.createElement('div');
-    indicator.className = 'claude-repost-indicator';
-    indicator.innerHTML = '🔁 REPOST';
-    indicator.title = 'This is a repost/retweet';
-    
-    // Find good place to insert indicator
-    const header = article.querySelector('[data-testid="User-Name"]')?.parentElement;
-    if (header) {
-      header.style.position = 'relative';
-      header.appendChild(indicator);
+async function markRepost(article) {
+  if (isRepost(article)) {
+    // Always mark reposts - CSS will control visibility based on body class
+    if (!article.classList.contains('claude-repost-marked')) {
+      article.classList.add('claude-repost-marked');
+      
+      // Add indicator if not present
+      if (!article.querySelector('.claude-repost-indicator')) {
+        const indicator = document.createElement('div');
+        indicator.className = 'claude-repost-indicator';
+        indicator.innerHTML = '🔁 REPOST';
+        indicator.title = 'This is a repost/retweet';
+        const header = article.querySelector('[data-testid="User-Name"]')?.parentElement;
+        if (header) {
+          header.style.position = 'relative';
+          header.appendChild(indicator);
+        }
+      }
     }
   }
 }
+
+// Apply repost settings
+async function applyRepostSettings() {
+  const settings = await chrome.storage.sync.get(['hideReposts', 'dimReposts']);
+  
+  document.body.classList.toggle('claude-hide-repost-buttons', settings.hideReposts);
+  document.body.classList.toggle('claude-dim-reposts', settings.dimReposts !== false);
+  
+  // Re-process all existing tweets to update their repost marking
+  const allTweets = document.querySelectorAll('article[data-testid="tweet"]');
+  allTweets.forEach(article => {
+    markRepost(article);
+  });
+}
+
+// Listen for settings changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync' && (changes.hideReposts || changes.dimReposts)) {
+    applyRepostSettings();
+  }
+});
+
+// Apply settings on load
+applyRepostSettings();
 
 // Show notification
 function showNotification(message, type = 'info') {
@@ -284,10 +311,10 @@ async function generateReply(tweetText, tweetAuthor, quotedTweet, images = []) {
 }
 
 // Add generate button to tweet
-function addGenerateButton(article) {
+async function addGenerateButton(article) {
   try {
     // NEW: Mark reposts
-    markRepost(article);
+    await markRepost(article);
 
     // Skip if button already exists
     if (article.querySelector('.claude-generate-btn')) return;
@@ -303,24 +330,6 @@ function addGenerateButton(article) {
         actionBar = replyButton.closest('[role="group"]');
       }
     }
-    
-        // Apply repost settings
-    async function applyRepostSettings() {
-      const settings = await chrome.storage.sync.get(['hideReposts', 'dimReposts']);
-      
-      document.body.classList.toggle('claude-hide-repost-buttons', settings.hideReposts);
-      document.body.classList.toggle('claude-dim-reposts', settings.dimReposts !== false);
-    }
-
-    // Listen for settings changes
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (namespace === 'sync' && (changes.hideReposts || changes.dimReposts)) {
-        applyRepostSettings();
-      }
-    });
-
-    // Apply settings on load
-    applyRepostSettings();
 
     if (!actionBar) {
       // Try another approach - find by aria-label
@@ -427,8 +436,23 @@ function addGenerateButton(article) {
   // Insert button
   actionBar.appendChild(button);
   
-  } catch (error) {
-    console.error('[Claude Extension] Error adding button:', error);
+} catch (error) {
+    // Check if extension context is invalid
+    if (error.message && error.message.includes('Extension context invalidated')) {
+      console.log('[Claude Extension] Extension was reloaded. Please refresh the page.');
+      // Stop trying to add more buttons
+      observer.disconnect();
+      // Optionally show a notification to the user
+      if (typeof showNotification === 'function') {
+        try {
+          showNotification('Extension was reloaded. Please refresh the page.', 'warning');
+        } catch (e) {
+          // Even showNotification might fail if context is invalid
+        }
+      }
+    } else {
+      console.error('[Claude Extension] Error adding button:', error);
+    }
   }
 }
 
@@ -473,10 +497,16 @@ if (document.readyState === 'loading') {
 
 // Periodic check for dynamic content (Twitter loads content dynamically)
 setInterval(() => {
-  const articles = document.querySelectorAll('article[data-testid="tweet"]:not(:has(.claude-generate-btn))');
-  if (articles.length > 0) {
-    console.log(`[Claude Extension] Found ${articles.length} tweets without buttons`);
-    articles.forEach(addGenerateButton);
+  try {
+    const articles = document.querySelectorAll('article[data-testid="tweet"]:not(:has(.claude-generate-btn))');
+    if (articles.length > 0) {
+      console.log(`[Claude Extension] Found ${articles.length} tweets without buttons`);
+      articles.forEach(addGenerateButton);
+    }
+  } catch (error) {
+    if (error.message && error.message.includes('Extension context invalidated')) {
+      console.log('[Claude Extension] Extension context invalid. Please refresh the page.');
+    }
   }
 }, 2000);
 

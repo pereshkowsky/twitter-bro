@@ -163,6 +163,21 @@
   opacity: 0.5;
 }
 
+/* Hide buttons on reposts when setting is enabled */
+body.claude-hide-repost-buttons .claude-repost-marked .claude-generate-btn {
+  display: none !important;
+}
+
+/* Hide buttons on reposts when setting is enabled */
+body.claude-hide-repost-buttons .claude-repost-marked .claude-generate-btn {
+  display: none !important;
+}
+
+/* Hide repost indicator when hide-repost-buttons is enabled */
+body.claude-hide-repost-buttons .claude-repost-indicator {
+  display: none !important;
+}
+
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   .claude-repost-marked {
