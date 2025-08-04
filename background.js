@@ -1,6 +1,6 @@
 // Background script for Twitter Claude Reply Generator
 
-// Listen for messages from content script
+  // Listen for messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'updateBadge') {
     // Show badge with new reply indicator
@@ -14,7 +14,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'generateReply') {
     // Handle API request from content script
     handleGenerateReply(request.data)
-      .then(reply => sendResponse({ success: true, reply }))
+      .then(result => {
+        console.log(`[Claude Extension BG] Sending response with reply and imageCount`);
+        sendResponse({ success: true, reply: result.reply, imageCount: result.imageCount });
+      })
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Will respond asynchronously
   }
@@ -28,6 +31,13 @@ chrome.action.onClicked.addListener(() => {
 // Handle Claude API request
 async function handleGenerateReply(data) {
   const { tweetText, tweetAuthor, quotedTweet, images, apiKey, model, prompt } = data;
+  
+  console.log(`[Claude Extension BG] Received request with:`, {
+    hasText: !!tweetText,
+    author: tweetAuthor,
+    imageCount: images.length,
+    model: model
+  });
   
   // Check if model supports images
   const supportsImages = model.includes('sonnet');
@@ -50,6 +60,7 @@ async function handleGenerateReply(data) {
   if (hasImages && supportsImages) {
     content.push(...images);
     content.push({ type: 'text', text: '\n\nConsider the images above when generating your reply.' });
+    console.log(`[Claude Extension BG] Added ${images.length} images to the request`);
   }
   
   // Check if we should use cache
@@ -92,12 +103,24 @@ async function handleGenerateReply(data) {
   const reply = responseData.content[0].text;
   
   // Save to storage for popup
-  await chrome.storage.sync.set({ 
-    apiKey: apiKey,
-    model: model,
+  const imageCount = hasImages && supportsImages ? images.length : 0;
+  
+  // Double-check image count before saving
+  console.log(`[Claude Extension BG] Saving to storage: imageCount=${imageCount}`);
+  
+  chrome.storage.sync.set({ 
     lastReply: reply,
     lastTweet: tweetText,
-    lastAuthor: tweetAuthor
+    lastAuthor: tweetAuthor,
+    lastImageCount: imageCount
+  }, () => {
+    // Callback to ensure data is saved
+    console.log(`[Claude Extension BG] Data saved to storage with imageCount: ${imageCount}`);
+  });
+  
+  // Verify save
+  chrome.storage.sync.get(['lastImageCount'], (data) => {
+    console.log(`[Claude Extension BG] Verified saved imageCount: ${data.lastImageCount}`);
   });
   
   // Update cache usage if applicable

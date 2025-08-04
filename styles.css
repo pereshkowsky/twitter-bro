@@ -113,3 +113,79 @@
     max-width: none;
   }
 }
+
+/* Repost/Retweet styling */
+.claude-repost-marked {
+  background-color: rgba(255, 0, 0, 0.05) !important;
+  border: 2px solid rgba(255, 0, 0, 0.2) !important;
+  position: relative;
+}
+
+.claude-repost-marked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    transparent 48%, 
+    rgba(255, 0, 0, 0.1) 50%, 
+    transparent 52%, 
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.claude-repost-indicator {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: #ff4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Optional: Dim the content of reposts */
+.claude-repost-marked [data-testid="tweetText"] {
+  opacity: 0.7;
+}
+
+/* Optional: Different button style for reposts */
+.claude-repost-marked .claude-generate-btn {
+  opacity: 0.5;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .claude-repost-marked {
+    background-color: rgba(139, 0, 0, 0.15) !important;
+    border-color: rgba(255, 0, 0, 0.3) !important;
+  }
+}
+
+/* Hide buttons on reposts when setting is enabled */
+body.claude-hide-repost-buttons .claude-repost-marked .claude-generate-btn {
+  display: none !important;
+}
+
+/* Remove red highlight when setting is disabled */
+body:not(.claude-dim-reposts) .claude-repost-marked {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+body:not(.claude-dim-reposts) .claude-repost-marked::before {
+  display: none;
+}
+
+body:not(.claude-dim-reposts) .claude-repost-indicator {
+  background: #657786;
+}

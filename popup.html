@@ -20,12 +20,15 @@
     }
     
     h1 {
-      font-size: 20px;
+      font-size: 10px;
+      font-weight: 600;
       margin: 0 0 20px 0;
       color: #1DA1F2;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     
     .form-group {
@@ -187,6 +190,53 @@
       background-color: #1DA1F2;
       color: white;
     }
+    
+    #saveSettingsBtn {
+      width: 100%;
+    }
+    
+    #imageStatus {
+      background-color: rgba(23, 191, 99, 0.15);
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(23, 191, 99, 0.4);
+      font-weight: 500;
+      animation: fadeIn 0.5s ease-in;
+      box-shadow: 0 2px 8px rgba(23, 191, 99, 0.2);
+      margin-top: 10px;
+      text-align: center;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -208,12 +258,27 @@
       <div class="model-info" id="modelInfo">Supports text and images</div>
     </div>
     
+    <div class="form-group" style="margin-top: 15px;">
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="hideReposts" style="width: auto; margin: 0;">
+        <span>Hide repost buttons</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+        <input type="checkbox" id="dimReposts" checked style="width: auto; margin: 0;">
+        <span>Highlight reposts in red</span>
+      </label>
+    </div>
+
     <div class="form-group">
       <label for="prompt">System Prompt</label>
       <textarea id="prompt" placeholder="Enter your custom prompt...">You are a helpful AI assistant that generates thoughtful, engaging replies to tweets. Be concise, relevant, and match the tone of the conversation.</textarea>
     </div>
     
     <div class="button-group">
+      <button id="saveSettingsBtn" class="btn-primary">Save Settings</button>
+    </div>
+    
+    <div class="button-group" style="margin-top: 10px;">
       <button id="cachePromptBtn" class="btn-success btn-small">Cache This Prompt</button>
       <button id="clearCacheBtn" class="btn-danger btn-small">Clear Cache</button>
     </div>
@@ -222,10 +287,6 @@
       Cache inactive
     </div>
     
-    <div class="form-group">
-      <button id="saveSettings">Save Settings</button>
-    </div>
-
     <div id="tweetContext" class="tweet-context" style="display: none;">
       <strong>Last tweet from @<span id="tweetAuthor"></span>:</strong>
       <div id="tweetText"></div>
@@ -233,7 +294,11 @@
     
     <div class="form-group">
       <label for="replyText">Generated Reply</label>
+      <div id="processingStatus" style="display: none; margin-bottom: 10px; color: #1DA1F2; font-size: 13px;">
+        ⏳ Processing tweet with images...
+      </div>
       <textarea id="replyText" readonly placeholder="Generated reply will appear here..."></textarea>
+      <div id="imageStatus" class="model-info" style="display: none; margin-top: 8px;"></div>
     </div>
     
     <div class="button-group">
