@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Twitter Claude Reply Generator",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Generate AI-powered replies to tweets using Claude API",
   "permissions": [
     "storage",
